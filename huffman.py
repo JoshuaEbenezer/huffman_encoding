@@ -12,7 +12,7 @@ class Node:
 		self.left = None
 		self.right = None 	# the color (the bin value) is only required in the leaves
 	def __lt__(self, other):
-		if (self.prob < other.prob):
+		if (self.prob < other.prob):		# define rich comparison methods for sorting in the priority queue
 			return 1
 		else:
 			return 0
@@ -57,9 +57,9 @@ def tree(probabilities):
 		newprob = l.prob+r.prob	# the new prob in the new node must be the sum of the other two
 		newnode.prob = newprob
 		prq.put(newnode)	# new node is inserted as a leaf, replacing the other two 
-	return prq.get()		# return the root node
+	return prq.get()		# return the root node - tree is complete
 
-def huffman_traversal(root_node,tmp_array,f):
+def huffman_traversal(root_node,tmp_array,f):		# traversal of the tree to generate codes
 	if (root_node.left is not None):
 		tmp_array[huffman_traversal.count] = 1
 		huffman_traversal.count+=1
@@ -71,16 +71,16 @@ def huffman_traversal(root_node,tmp_array,f):
 		huffman_traversal(root_node.right,tmp_array,f)
 		huffman_traversal.count-=1
 	else:
-		huffman_traversal.output_bits[root_node.data] = huffman_traversal.count
-		bitstream = ''.join(str(cell) for cell in tmp_array[1:huffman_traversal.count])
+		huffman_traversal.output_bits[root_node.data] = huffman_traversal.count		#count the number of bits for each color
+		bitstream = ''.join(str(cell) for cell in tmp_array[1:huffman_traversal.count]) 
 		color = str(root_node.data)
 		wr_str = color+' '+ bitstream+'\n'
-		f.write(wr_str)
+		f.write(wr_str)		# write the color and the code to a file
 	return
 
 # Read an bmp image into a numpy array
 img = imread('tiger.bmp')
-img = imresize(img,10)
+img = imresize(img,10)		# resize to 10% (not strictly necessary - done for faster computation)
 
 # convert to grayscale
 gray_img = rgb2gray(img)
@@ -88,15 +88,15 @@ gray_img = rgb2gray(img)
 # compute histogram of pixels
 hist = np.bincount(gray_img.ravel(),minlength=256)
 
-probabilities = hist/np.sum(hist)
+probabilities = hist/np.sum(hist)		# a priori probabilities from frequencies
 
-root_node = tree(probabilities)
+root_node = tree(probabilities)			# create the tree using the probs.
 tmp_array = np.ones([64],dtype=int)
 huffman_traversal.output_bits = np.empty(256,dtype=int) 
 huffman_traversal.count = 0
 f = open('codes.txt','w')
-huffman_traversal(root_node,tmp_array,f)
+huffman_traversal(root_node,tmp_array,f)		# traverse the tree and write the codes
 
-input_bits = img.shape[0]*img.shape[1]*8
-compression = (1-np.sum(huffman_traversal.output_bits*hist)/input_bits)*100
+input_bits = img.shape[0]*img.shape[1]*8	# calculate number of bits in grayscale 
+compression = (1-np.sum(huffman_traversal.output_bits*hist)/input_bits)*100	# compression rate
 print('Compression is ',compression,' percent')
